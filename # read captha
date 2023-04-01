@@ -1,0 +1,86 @@
+# Importing the Required Libraries
+import random
+import string
+from tkinter import Tk, Label, Entry, Button, END
+from PIL import ImageTk, Image
+from captcha.image import ImageCaptcha
+
+
+def createImage(flag=0):
+    global random_string
+    global image_label
+    global image_display
+    global entry
+    global verify_label
+
+    if flag == 1:
+        verify_label.grid_forget()
+
+    # Removing the contents of the input box.
+    entry.delete(0, END)
+
+    # Generating a random string for the Captcha
+    random_string = ''.join(random.choices(
+        string.ascii_letters + string.digits, k=6))
+
+    # Creating a Captcha Image
+    image_captcha = ImageCaptcha(width=500, height=250)
+    image_generated = image_captcha.generate(random_string)
+    image_display = ImageTk.PhotoImage(Image.open(image_generated))
+
+    # Removing the previous Image (if present) and
+    # displaying a new one.
+    image_label.grid_forget()
+    image_label = Label(root, image=image_display)
+    image_label.grid(row=1, column=0, columnspan=2, padx=10)
+
+
+def check(x, y):
+    global verify_label
+
+    verify_label.grid_forget()
+
+    if x.lower() == y.lower():
+        verify_label = Label(master=root, text="Authenticated!",
+                             font="Arial 15", bg='#1f1842', fg="#ad1318")
+        verify_label.grid(row=0, column=0, columnspan=2, pady=10)
+    else:
+        verify_label = Label(master=root, text="Incorrect!",
+                             font="Arial 15", bg='#1f1842', fg="#ad1318")
+        verify_label.grid(row=0, column=0, columnspan=2, pady=10)
+        createImage()
+
+
+if __name__ == "__main__":
+    # Initializing Tkinter by creating a root widget,
+    # setting Title and Background Color
+    root = Tk()
+    root.title('Image Captcha')
+    root.configure(background='#1f1842')
+
+    # Initializing the Variables to be defined later
+    verify_label = Label(root)
+    image_label = Label(root)
+
+    # Defining the Input Box and placing it in the window
+    entry = Entry(root, width=35, borderwidth=5,
+                  font="Arial 15", justify="center")
+    entry.grid(row=2, column=0)
+
+    createImage()
+
+    # Defining the path for the reload button image
+    # and using it to add the reload button in the
+    # GUI window
+
+    reload_img = ImageTk.PhotoImage(Image.open("refresh.jpg").resize((32, 32)))
+    reload_button = Button(image=reload_img, command=lambda: createImage(1))
+    reload_button.grid(row=2, column=2, pady=20)
+
+    # Defining the submit button
+    submit_button = Button(root, text="Submit", font="Arial 10",
+                           command=lambda: check(entry.get(), random_string))
+    submit_button.grid(row=3, column=0, columnspan=2, pady=10)
+    root.bind('<Return>', func=lambda Event: check(entry.get(), random_string))
+
+    root.mainloop()
